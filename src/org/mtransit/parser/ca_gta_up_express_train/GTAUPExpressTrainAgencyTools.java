@@ -15,7 +15,7 @@ import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.gtfs.data.GTrip;
 import org.mtransit.parser.mt.data.MAgency;
 import org.mtransit.parser.mt.data.MRoute;
-import org.mtransit.parser.mt.data.MSpec;
+import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.mt.data.MTrip;
 
 // http://www.gotransit.com/publicroot/en/schedules/DeveloperResources.aspx
@@ -37,11 +37,11 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public void start(String[] args) {
-		System.out.printf("Generating UP Express train data...\n");
+		System.out.printf("\nGenerating UP Express train data...\n");
 		long start = System.currentTimeMillis();
 		this.serviceIds = extractUsefulServiceIds(args, this);
 		super.start(args);
-		System.out.printf("Generating UP Express train data... DONE in %s.\n", Utils.getPrettyDuration(System.currentTimeMillis() - start));
+		System.out.printf("\nGenerating UP Express train data... DONE in %s.\n", Utils.getPrettyDuration(System.currentTimeMillis() - start));
 	}
 
 	@Override
@@ -105,8 +105,8 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 		tripHeadsign = AEROPORT.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = GARE.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = STATION.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-		tripHeadsign = MSpec.cleanStreetTypes(tripHeadsign);
-		return MSpec.cleanLabel(tripHeadsign);
+		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
+		return CleanUtils.cleanLabel(tripHeadsign);
 	}
 
 	private static final Pattern STATION = Pattern.compile("(station)", Pattern.CASE_INSENSITIVE);
@@ -117,8 +117,8 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 	public String cleanStopName(String gStopName) {
 		gStopName = STATION.matcher(gStopName).replaceAll(StringUtils.EMPTY);
 		gStopName = UP_EXPRESS_GO.matcher(gStopName).replaceAll(StringUtils.EMPTY);
-		gStopName = MSpec.cleanStreetTypes(gStopName);
-		return MSpec.cleanLabel(gStopName);
+		gStopName = CleanUtils.cleanStreetTypes(gStopName);
+		return CleanUtils.cleanLabel(gStopName);
 	}
 
 	private static final String STOP_CODE_WESTON = "WE";
