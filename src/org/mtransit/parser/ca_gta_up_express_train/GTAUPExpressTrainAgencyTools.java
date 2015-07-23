@@ -77,7 +77,7 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public long getRouteId(GRoute gRoute) {
-		Matcher matcher = DIGITS.matcher(gRoute.route_id);
+		Matcher matcher = DIGITS.matcher(gRoute.getRouteId());
 		matcher.find();
 		return Long.parseLong(matcher.group());
 	}
@@ -93,7 +93,7 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
-		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.trip_headsign), gTrip.direction_id);
+		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.getTripHeadsign()), gTrip.getDirectionId());
 	}
 
 	private static final Pattern AEROPORT = Pattern.compile("(a[e|é]roport)", Pattern.CASE_INSENSITIVE);
@@ -132,13 +132,13 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 
 	@Override
 	public int getStopId(GStop gStop) {
-		if (STOP_CODE_WESTON.equals(gStop.stop_id)) {
+		if (STOP_CODE_WESTON.equals(gStop.getStopId())) {
 			return STOP_ID_WESTON;
-		} else if (STOP_CODE_UNION.equals(gStop.stop_id)) {
+		} else if (STOP_CODE_UNION.equals(gStop.getStopId())) {
 			return STOP_ID_UNION;
-		} else if (STOP_CODE_PEARSON.equals(gStop.stop_id)) {
+		} else if (STOP_CODE_PEARSON.equals(gStop.getStopId())) {
 			return STOP_ID_PEARSON;
-		} else if (STOP_CODE_BLOOR.equals(gStop.stop_id)) {
+		} else if (STOP_CODE_BLOOR.equals(gStop.getStopId())) {
 			return STOP_ID_BLOOR;
 		}
 		System.out.println("Unexpected stop ID " + gStop);
