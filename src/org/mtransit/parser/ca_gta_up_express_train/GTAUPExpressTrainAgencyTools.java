@@ -99,11 +99,13 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 	private static final Pattern AEROPORT = Pattern.compile("(a[e|é]roport)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern GARE = Pattern.compile("(gare)", Pattern.CASE_INSENSITIVE);
 
+	private static final Pattern UP_EXPRESS = Pattern.compile("(UP Express )", Pattern.CASE_INSENSITIVE);
 
 	@Override
 	public String cleanTripHeadsign(String tripHeadsign) {
 		tripHeadsign = AEROPORT.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = GARE.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+		tripHeadsign = UP_EXPRESS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = STATION.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 		return CleanUtils.cleanLabel(tripHeadsign);
