@@ -78,8 +78,15 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 	@Override
 	public long getRouteId(GRoute gRoute) {
 		Matcher matcher = DIGITS.matcher(gRoute.getRouteId());
-		matcher.find();
-		return Long.parseLong(matcher.group());
+		if (matcher.find()) {
+			return Long.parseLong(matcher.group());
+		}
+		if ("UP".equals(gRoute.getRouteId())) {
+			return 0L;
+		}
+		System.out.printf("\nUnexpected route ID %s\n", gRoute);
+		System.exit(-1);
+		return -1L;
 	}
 
 	private static final String AGENCY_COLOR_BROWN = "555025"; // BROWN (from web site CSS)
