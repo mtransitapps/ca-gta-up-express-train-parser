@@ -1,6 +1,8 @@
 package org.mtransit.parser.ca_gta_up_express_train;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -101,6 +103,23 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 	@Override
 	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
 		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.getTripHeadsign()), gTrip.getDirectionId());
+	}
+
+	@Override
+	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
+		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
+		if (mTrip.getRouteId() == 0L) {
+			if (Arrays.asList( //
+					"Weston GO/UP", //
+					"Pearson Airport" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Pearson Airport", mTrip.getHeadsignId());
+				return true;
+			}
+		}
+		System.out.printf("\nUnepected trips to merge %s & %s\n", mTrip, mTripToMerge);
+		System.exit(-1);
+		return false;
 	}
 
 	private static final Pattern AEROPORT = Pattern.compile("(a[e|é]roport)", Pattern.CASE_INSENSITIVE);
