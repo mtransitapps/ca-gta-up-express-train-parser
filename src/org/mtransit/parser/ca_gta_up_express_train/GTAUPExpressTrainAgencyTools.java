@@ -20,9 +20,9 @@ import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.mt.data.MTrip;
 
-// http://www.gotransit.com/publicroot/en/schedules/DeveloperResources.aspx
-// http://www.gotransit.com/publicroot/fr/schedules/DeveloperResources.aspx
-// http://www.gotransit.com/publicroot/gtfs/google_transit_UP.zip
+// https://www.gotransit.com/en/information-resources/software-developers
+// https://www.gotransit.com/fr/ressources-informatives/dveloppeurs-de-logiciel
+// https://www.gotransit.com/static_files/gotransit/assets/Files/UP-GTFS.zip
 public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 
 	public static void main(String[] args) {
