@@ -1,13 +1,10 @@
 package org.mtransit.parser.ca_gta_up_express_train;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.DefaultAgencyTools;
+import org.mtransit.parser.MTLog;
 import org.mtransit.parser.Utils;
 import org.mtransit.parser.gtfs.data.GCalendar;
 import org.mtransit.parser.gtfs.data.GCalendarDate;
@@ -17,15 +14,22 @@ import org.mtransit.parser.gtfs.data.GStop;
 import org.mtransit.parser.gtfs.data.GTrip;
 import org.mtransit.parser.mt.data.MAgency;
 import org.mtransit.parser.mt.data.MRoute;
-import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.mt.data.MTrip;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.mtransit.parser.StringUtils.EMPTY;
 
 // https://www.gotransit.com/en/information-resources/software-developers
 // https://www.gotransit.com/fr/ressources-informatives/dveloppeurs-de-logiciel
 // https://www.gotransit.com/static_files/gotransit/assets/Files/UP-GTFS.zip
 public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 
-	public static void main(String[] args) {
+	public static void main(@Nullable String[] args) {
 		if (args == null || args.length == 0) {
 			args = new String[3];
 			args[0] = "input/gtfs.zip";
@@ -35,46 +39,48 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 		new GTAUPExpressTrainAgencyTools().start(args);
 	}
 
-	private HashSet<String> serviceIds;
+	@Nullable
+	private HashSet<Integer> serviceIdInts;
 
 	@Override
-	public void start(String[] args) {
-		System.out.printf("\nGenerating UP Express train data...");
+	public void start(@NotNull String[] args) {
+		MTLog.log("Generating UP Express train data...");
 		long start = System.currentTimeMillis();
-		this.serviceIds = extractUsefulServiceIds(args, this);
+		this.serviceIdInts = extractUsefulServiceIdInts(args, this, true);
 		super.start(args);
-		System.out.printf("\nGenerating UP Express train data... DONE in %s.\n", Utils.getPrettyDuration(System.currentTimeMillis() - start));
+		MTLog.log("Generating UP Express train data... DONE in %s.", Utils.getPrettyDuration(System.currentTimeMillis() - start));
 	}
 
 	@Override
 	public boolean excludingAll() {
-		return this.serviceIds != null && this.serviceIds.isEmpty();
+		return this.serviceIdInts != null && this.serviceIdInts.isEmpty();
 	}
 
 	@Override
-	public boolean excludeCalendar(GCalendar gCalendar) {
-		if (this.serviceIds != null) {
-			return excludeUselessCalendar(gCalendar, this.serviceIds);
+	public boolean excludeCalendar(@NotNull GCalendar gCalendar) {
+		if (this.serviceIdInts != null) {
+			return excludeUselessCalendarInt(gCalendar, this.serviceIdInts);
 		}
 		return super.excludeCalendar(gCalendar);
 	}
 
 	@Override
-	public boolean excludeCalendarDate(GCalendarDate gCalendarDates) {
-		if (this.serviceIds != null) {
-			return excludeUselessCalendarDate(gCalendarDates, this.serviceIds);
+	public boolean excludeCalendarDate(@NotNull GCalendarDate gCalendarDates) {
+		if (this.serviceIdInts != null) {
+			return excludeUselessCalendarDateInt(gCalendarDates, this.serviceIdInts);
 		}
 		return super.excludeCalendarDate(gCalendarDates);
 	}
 
 	@Override
-	public boolean excludeTrip(GTrip gTrip) {
-		if (this.serviceIds != null) {
-			return excludeUselessTrip(gTrip, this.serviceIds);
+	public boolean excludeTrip(@NotNull GTrip gTrip) {
+		if (this.serviceIdInts != null) {
+			return excludeUselessTripInt(gTrip, this.serviceIdInts);
 		}
 		return super.excludeTrip(gTrip);
 	}
 
+	@NotNull
 	@Override
 	public Integer getAgencyRouteType() {
 		return MAgency.ROUTE_TYPE_TRAIN;
@@ -83,35 +89,36 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
 
 	@Override
-	public long getRouteId(GRoute gRoute) {
-		Matcher matcher = DIGITS.matcher(gRoute.getRouteId());
+	public long getRouteId(@NotNull GRoute gRoute) {
+		//noinspection deprecation
+		final String routeId = gRoute.getRouteId();
+		Matcher matcher = DIGITS.matcher(routeId);
 		if (matcher.find()) {
 			return Long.parseLong(matcher.group());
 		}
-		if ("UP".equals(gRoute.getRouteId())) {
+		if ("UP".equals(routeId)) {
 			return 0L;
 		}
-		System.out.printf("\nUnexpected route ID %s\n", gRoute);
-		System.exit(-1);
-		return -1L;
+		throw new MTLog.Fatal("Unexpected route ID for %s!", gRoute);
 	}
 
 	private static final String AGENCY_COLOR_BROWN = "555025"; // BROWN (from web site CSS)
 
 	private static final String AGENCY_COLOR = AGENCY_COLOR_BROWN;
 
+	@NotNull
 	@Override
 	public String getAgencyColor() {
 		return AGENCY_COLOR;
 	}
 
 	@Override
-	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
+	public void setTripHeadsign(@NotNull MRoute mRoute, @NotNull MTrip mTrip, @NotNull GTrip gTrip, @NotNull GSpec gtfs) {
 		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.getTripHeadsign()), gTrip.getDirectionId());
 	}
 
 	@Override
-	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
+	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
 		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
 		if (mTrip.getRouteId() == 0L) {
 			if (Arrays.asList( //
@@ -122,9 +129,7 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 				return true;
 			}
 		}
-		System.out.printf("\nUnepected trips to merge %s & %s\n", mTrip, mTripToMerge);
-		System.exit(-1);
-		return false;
+		throw new MTLog.Fatal("Unexpected trips to merge %s & %s", mTrip, mTripToMerge);
 	}
 
 	private static final Pattern AEROPORT = Pattern.compile("(a[e|é]roport)", Pattern.CASE_INSENSITIVE);
@@ -132,12 +137,13 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 
 	private static final Pattern UP_EXPRESS = Pattern.compile("(UP Express )", Pattern.CASE_INSENSITIVE);
 
+	@NotNull
 	@Override
-	public String cleanTripHeadsign(String tripHeadsign) {
-		tripHeadsign = AEROPORT.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-		tripHeadsign = GARE.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-		tripHeadsign = UP_EXPRESS.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
-		tripHeadsign = STATION.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
+	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
+		tripHeadsign = AEROPORT.matcher(tripHeadsign).replaceAll(EMPTY);
+		tripHeadsign = GARE.matcher(tripHeadsign).replaceAll(EMPTY);
+		tripHeadsign = UP_EXPRESS.matcher(tripHeadsign).replaceAll(EMPTY);
+		tripHeadsign = STATION.matcher(tripHeadsign).replaceAll(EMPTY);
 		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 		return CleanUtils.cleanLabel(tripHeadsign);
 	}
@@ -146,10 +152,11 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 
 	private static final Pattern UP_EXPRESS_GO = Pattern.compile("(up express|up|go[/]?)", Pattern.CASE_INSENSITIVE);
 
+	@NotNull
 	@Override
-	public String cleanStopName(String gStopName) {
-		gStopName = STATION.matcher(gStopName).replaceAll(StringUtils.EMPTY);
-		gStopName = UP_EXPRESS_GO.matcher(gStopName).replaceAll(StringUtils.EMPTY);
+	public String cleanStopName(@NotNull String gStopName) {
+		gStopName = STATION.matcher(gStopName).replaceAll(EMPTY);
+		gStopName = UP_EXPRESS_GO.matcher(gStopName).replaceAll(EMPTY);
 		gStopName = CleanUtils.cleanStreetTypes(gStopName);
 		return CleanUtils.cleanLabel(gStopName);
 	}
@@ -164,18 +171,20 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 	private static final int STOP_ID_BLOOR = 10003;
 
 	@Override
-	public int getStopId(GStop gStop) {
-		if (STOP_CODE_WESTON.equals(gStop.getStopId())) {
+	public int getStopId(@NotNull GStop gStop) {
+		//noinspection deprecation
+		final String stopId = gStop.getStopId();
+		switch (stopId) {
+		case STOP_CODE_WESTON:
 			return STOP_ID_WESTON;
-		} else if (STOP_CODE_UNION.equals(gStop.getStopId())) {
+		case STOP_CODE_UNION:
 			return STOP_ID_UNION;
-		} else if (STOP_CODE_PEARSON.equals(gStop.getStopId())) {
+		case STOP_CODE_PEARSON:
 			return STOP_ID_PEARSON;
-		} else if (STOP_CODE_BLOOR.equals(gStop.getStopId())) {
+		case STOP_CODE_BLOOR:
 			return STOP_ID_BLOOR;
+		default:
+			throw new MTLog.Fatal("Unexpected stop ID for %s!", gStop);
 		}
-		System.out.println("Unexpected stop ID " + gStop);
-		System.exit(-1);
-		return -1;
 	}
 }
