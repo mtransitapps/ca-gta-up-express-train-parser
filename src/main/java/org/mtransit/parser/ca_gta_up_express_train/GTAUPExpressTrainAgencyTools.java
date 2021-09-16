@@ -17,9 +17,12 @@ import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.mt.data.MTrip;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.mtransit.commons.RegexUtils.DIGITS;
 import static org.mtransit.commons.StringUtils.EMPTY;
 
 // https://www.gotransit.com/en/information-resources/software-developers
@@ -36,6 +39,12 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 		return true;
 	}
 
+	@Nullable
+	@Override
+	public List<Locale> getSupportedLanguages() {
+		return LANG_EN_FR;
+	}
+
 	@NotNull
 	@Override
 	public String getAgencyName() {
@@ -48,20 +57,28 @@ public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 		return MAgency.ROUTE_TYPE_TRAIN;
 	}
 
-	private static final Pattern DIGITS = Pattern.compile("[\\d]+");
+	@Override
+	public boolean defaultRouteIdEnabled() {
+		return true;
+	}
 
 	@Override
-	public long getRouteId(@NotNull GRoute gRoute) {
-		//noinspection deprecation
-		final String routeId = gRoute.getRouteId();
-		Matcher matcher = DIGITS.matcher(routeId);
-		if (matcher.find()) {
-			return Long.parseLong(matcher.group());
-		}
-		if ("UP".equals(routeId)) {
+	public boolean useRouteShortNameForRouteId() {
+		return true;
+	}
+
+	@Nullable
+	@Override
+	public Long convertRouteIdFromShortNameNotSupported(@NotNull String routeShortName) {
+		if ("UP".equals(routeShortName)) {
 			return 0L;
 		}
-		throw new MTLog.Fatal("Unexpected route ID for %s!", gRoute);
+		return super.convertRouteIdFromShortNameNotSupported(routeShortName);
+	}
+
+	@Override
+	public boolean defaultRouteLongNameEnabled() {
+		return true;
 	}
 
 	@Override
