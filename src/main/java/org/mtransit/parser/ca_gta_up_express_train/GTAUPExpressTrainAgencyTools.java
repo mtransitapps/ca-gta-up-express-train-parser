@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
 
 // https://www.gotransit.com/en/information-resources/software-developers
 // https://www.gotransit.com/fr/ressources-informatives/dveloppeurs-de-logiciel
-// https://www.gotransit.com/static_files/gotransit/assets/Files/UP-GTFS.zip
 public class GTAUPExpressTrainAgencyTools extends DefaultAgencyTools {
 
 	public static void main(@NotNull String[] args) {
